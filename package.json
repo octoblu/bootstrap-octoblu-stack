@@ -16,6 +16,7 @@
     "lodash": "^4.17.4",
     "meshblu-config": "^9.0.2",
     "meshblu-http": "^10.2.0",
+    "mongojs": "^2.4.1",
     "sigterm-handler": "^3.0.0"
   },
   "devDependencies": {

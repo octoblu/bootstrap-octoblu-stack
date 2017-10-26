@@ -77,6 +77,7 @@ class Command {
       "meshblu-authenticator-github",
       "meshblu-authenticator-google",
       "meshblu-authenticator-twitter",
+      "meshblu-core-dispatcher",
       "oauth-provider",
       "triggers-service",
     ])
