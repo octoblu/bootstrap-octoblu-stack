@@ -1,6 +1,10 @@
+#!/usr/bin/env node
+
 const autoBind = require("auto-bind")
 const dashdash = require("dashdash")
 const sigtermHandler = require("sigterm-handler")
+const MeshbluConfig = require("meshblu-config")
+const Bootstrap = require("./lib/bootstrap")
 const packageJSON = require("./package.json")
 
 process.on("uncaughtException", function(error) {
@@ -63,6 +67,20 @@ class Command {
 
   async run() {
     const {} = this.parseOptions()
+    const meshbluConfig = new MeshbluConfig()
+    const bootstrap = new Bootstrap({ meshbluConfig: meshbluConfig.generate() })
+    const env = await bootstrap.run([
+      "api-octoblu",
+      "interval-service",
+      "meshblu-authenticator-email-password",
+      "meshblu-authenticator-facebook",
+      "meshblu-authenticator-github",
+      "meshblu-authenticator-google",
+      "meshblu-authenticator-twitter",
+      "oauth-provider",
+      "triggers-service",
+    ])
+    console.log(env)
   }
 }
 
