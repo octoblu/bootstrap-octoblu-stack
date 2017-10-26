@@ -1,0 +1,17 @@
+{
+  "name": "bootstrap-octoblu-stack",
+  "version": "1.0.0",
+  "description": "Bootstrap octoblu stacks",
+  "main": "index.js",
+  "bin": {
+    "bootstrap-octoblu-stack": "./command.js"
+  },
+  "repository": "git@github.com:octoblu/bootstrap-octoblu-stack.git",
+  "author": "Octoblu, Inc. <npm@octoblu.com>",
+  "license": "MIT",
+  "dependencies": {
+    "auto-bind": "^1.1.0",
+    "dashdash": "^1.14.1",
+    "sigterm-handler": "^3.0.0"
+  }
+}
