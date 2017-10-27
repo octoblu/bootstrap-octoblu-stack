@@ -67,9 +67,8 @@ class Command {
 
   async run() {
     const {} = this.parseOptions()
-    const meshbluConfig = new MeshbluConfig()
-    const bootstrap = new Bootstrap({ meshbluConfig: meshbluConfig.generate() })
-    const env = await bootstrap.run([
+    const meshbluConfig = new MeshbluConfig().generate()
+    const services = [
       "api-octoblu",
       "interval-service",
       "meshblu-authenticator-email-password",
@@ -80,7 +79,9 @@ class Command {
       "meshblu-core-dispatcher",
       "oauth-provider",
       "triggers-service",
-    ])
+    ]
+    const bootstrap = new Bootstrap({ meshbluConfig, services })
+    const env = await bootstrap.run()
     console.log(env)
   }
 }
