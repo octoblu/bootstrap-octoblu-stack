@@ -14,7 +14,8 @@
         "parser": "babylon"
       }
     ],
-    "no-console": 0
+    "no-console": 0,
+    "no-undefined": "error"
   },
   "plugins": ["prettier"],
   "env": {

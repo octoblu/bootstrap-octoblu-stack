@@ -5,6 +5,7 @@ const dashdash = require("dashdash")
 const sigtermHandler = require("sigterm-handler")
 const MeshbluConfig = require("meshblu-config")
 const Bootstrap = require("./lib/bootstrap")
+const jsonToEnv = require("./lib/json-to-env")
 const packageJSON = require("./package.json")
 
 process.on("uncaughtException", function(error) {
@@ -66,7 +67,7 @@ class Command {
   }
 
   async run() {
-    const {} = this.parseOptions()
+    this.parseOptions()
     const meshbluConfig = new MeshbluConfig().generate()
     const services = [
       "api-octoblu",
@@ -77,12 +78,18 @@ class Command {
       "meshblu-authenticator-google",
       "meshblu-authenticator-twitter",
       "meshblu-core-dispatcher",
+      "meshblu-otp-service",
+      "nanocyte-flow-deploy-service",
       "oauth-provider",
       "triggers-service",
     ]
     const bootstrap = new Bootstrap({ meshbluConfig, services })
     const env = await bootstrap.run()
-    console.log(env)
+    console.log(">> GENERATED ENVIRONMENT <<")
+    console.log("")
+    console.log(jsonToEnv(env))
+    console.log("")
+    console.log(">> COPY ABOVE TO DEFAULT ENVIRONMENT <<")
   }
 }
 
