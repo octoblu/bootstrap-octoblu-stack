@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
+const path = require("path")
+const fs = require("fs-extra")
 const autoBind = require("auto-bind")
 const dashdash = require("dashdash")
 const sigtermHandler = require("sigterm-handler")
 const MeshbluConfig = require("meshblu-config")
-const Bootstrap = require("./lib/bootstrap")
+const BootstrapServices = require("./lib/bootstrap-services")
 const jsonToEnv = require("./lib/json-to-env")
 const packageJSON = require("./package.json")
 
@@ -29,6 +31,14 @@ const OPTIONS = [
     type: "bool",
     help: "Print version and exit",
   },
+  {
+    names: ["output", "o"],
+    env: "ENV_OUTPUT_FILE_PATH",
+    type: "string",
+    completionType: "filename",
+    help: "Output file name for env",
+    default: path.join(__dirname, "output.env"),
+  },
 ]
 
 class Command {
@@ -50,7 +60,15 @@ class Command {
       process.exit(0)
     }
 
-    return {}
+    if (!opts.output) {
+      this.outputHelp()
+      console.error("--output, -o, or ENV_OUTPUT_FILE_PATH is required")
+      process.exit(1)
+    }
+
+    const outputFilePath = path.resolve(opts.output)
+
+    return { outputFilePath }
   }
 
   die(error) {
@@ -67,29 +85,11 @@ class Command {
   }
 
   async run() {
-    this.parseOptions()
+    const { outputFilePath } = this.parseOptions()
     const meshbluConfig = new MeshbluConfig().generate()
-    const services = [
-      "api-octoblu",
-      "interval-service",
-      "meshblu-authenticator-email-password",
-      "meshblu-authenticator-facebook",
-      "meshblu-authenticator-github",
-      "meshblu-authenticator-google",
-      "meshblu-authenticator-twitter",
-      "meshblu-core-dispatcher",
-      "meshblu-otp-service",
-      "nanocyte-flow-deploy-service",
-      "oauth-provider",
-      "triggers-service",
-    ]
-    const bootstrap = new Bootstrap({ meshbluConfig, services })
-    const env = await bootstrap.run()
-    console.log(">> GENERATED ENVIRONMENT <<")
-    console.log("")
-    console.log(jsonToEnv(env))
-    console.log("")
-    console.log(">> COPY ABOVE TO DEFAULT ENVIRONMENT <<")
+    const bootstrapServices = new BootstrapServices({ meshbluConfig })
+    const env = await bootstrapServices.run()
+    await fs.writeFile(outputFilePath, jsonToEnv(env))
   }
 }
 
