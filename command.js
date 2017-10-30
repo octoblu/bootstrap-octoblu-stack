@@ -86,10 +86,13 @@ class Command {
 
   async run() {
     const { outputFilePath } = this.parseOptions()
+    console.log("bootstrapping...", { outputFilePath })
     const meshbluConfig = new MeshbluConfig().generate()
     const bootstrapServices = new BootstrapServices({ meshbluConfig })
     const env = await bootstrapServices.run()
+    console.log("writing outputFilePath")
     await fs.writeFile(outputFilePath, jsonToEnv(env))
+    process.exit(0)
   }
 }
 
