@@ -1,35 +1,19 @@
-#!/usr/bin/env node
-
-const path = require("path")
-const fs = require("fs-extra")
-const autoBind = require("auto-bind")
-const dashdash = require("dashdash")
+const OctoDash = require("octodash")
 const sigtermHandler = require("sigterm-handler")
-const MeshbluConfig = require("meshblu-config")
-const BootstrapServices = require("./lib/bootstrap-services")
-const jsonToEnv = require("./lib/json-to-env")
+const startServer = require("./lib/server")
 const packageJSON = require("./package.json")
+const MeshbluConfig = require("meshblu-config")
+const path = require("path")
 
-process.on("uncaughtException", function(error) {
-  console.error(error.stack)
-  process.exit(1)
-})
-
-process.on("unhandledRejection", error => {
-  console.error(error.stack)
-  process.exit(1)
-})
-
-const OPTIONS = [
+const CLI_OPTIONS = [
   {
-    names: ["help", "h"],
-    type: "bool",
-    help: "Print this help and exit.",
-  },
-  {
-    names: ["version", "v"],
-    type: "bool",
-    help: "Print version and exit",
+    names: ["port", "p"],
+    type: "number",
+    env: "PORT",
+    required: true,
+    default: 80,
+    help: "Port to run webservice on",
+    helpArg: "NUMBER",
   },
   {
     names: ["output", "o"],
@@ -37,71 +21,38 @@ const OPTIONS = [
     type: "string",
     completionType: "filename",
     help: "Output file name for env",
-    default: path.join(__dirname, "output.env"),
+    default: path.join(__dirname, "data", "output.env"),
   },
 ]
 
 class Command {
-  constructor() {
-    autoBind(this)
-    this.parser = dashdash.createParser({ options: OPTIONS })
+  constructor({ argv }) {
+    this.octoDash = new OctoDash({
+      argv: argv,
+      cliOptions: CLI_OPTIONS,
+      name: packageJSON.name,
+      version: packageJSON.version,
+    })
   }
 
-  parseOptions() {
-    const opts = this.parser.parse(process.argv)
-
-    if (opts.help) {
-      this.outputHelp()
-      process.exit(0)
-    }
-
-    if (opts.version) {
-      console.log(packageJSON.version)
-      process.exit(0)
-    }
-
-    if (!opts.output) {
-      this.outputHelp()
-      console.error("--output, -o, or ENV_OUTPUT_FILE_PATH is required")
-      process.exit(1)
-    }
-
-    const outputFilePath = path.resolve(opts.output)
-
-    return { outputFilePath }
-  }
-
-  die(error) {
-    if (!error) {
-      process.exit(0)
-    }
-    console.error(error.stack)
-  }
-
-  outputHelp() {
-    console.error(`USAGE: ${packageJSON.name}`)
-    console.error("options:")
-    console.error(this.parser.help({ includeEnv: true, includeDefaults: true }).trimRight())
-  }
-
-  async run() {
-    const { outputFilePath } = this.parseOptions()
-    console.log("bootstrapping...", { outputFilePath })
+  run() {
+    const { port, output } = this.octoDash.parseOptions()
     const meshbluConfig = new MeshbluConfig().generate()
-    const bootstrapServices = new BootstrapServices({ meshbluConfig })
-    const env = await bootstrapServices.run()
-    console.log("writing outputFilePath")
-    await fs.writeFile(outputFilePath, jsonToEnv(env))
-    process.exit(0)
+    const server = startServer(
+      {
+        port,
+        meshbluConfig,
+        outputFilePath: output,
+      },
+      error => {
+        if (error) throw error
+      },
+    )
+    sigtermHandler(() => {
+      server.close()
+      return Promise.resolve()
+    })
   }
 }
 
-if (require.main === module) {
-  const command = new Command()
-  sigtermHandler(async () => {
-    command.die()
-  })
-  command.run()
-} else {
-  module.exports = Command
-}
+new Command({ argv: process.argv }).run()

@@ -1,1 +1,1 @@
-FROM octoblu/node:8-worker-onbuild
+FROM octoblu/node:8-webservice-onbuild
