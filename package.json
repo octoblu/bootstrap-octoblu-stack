@@ -1,10 +1,13 @@
 {
   "name": "bootstrap-octoblu-stack",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Bootstrap octoblu stacks",
   "main": "index.js",
   "bin": {
     "bootstrap-octoblu-stack": "./command.js"
+  },
+  "scripts": {
+    "start": "node command.js"
   },
   "repository": "git@github.com:octoblu/bootstrap-octoblu-stack.git",
   "author": "Octoblu, Inc. <npm@octoblu.com>",
